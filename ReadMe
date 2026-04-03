@@ -1,0 +1,38 @@
+Rapport: Filmrekommendationssystem "Herr Kycklings Fantastiska Filmtips"
+Uppgift: Labb 1
+
+1. Översikt
+Systemet rekommenderar fem filmer baserat på en inputfilm. Det är byggt med TF-IDF-vektorisering på genres och användartaggar, kombinerat med cosine similarity för att mäta likheter mellan filmer.
+
+2. Dataset
+Källdata: MovieLens (ml-latest)
+Jag använder movies.csv och tags.csv.
+
+3. Metod
+Innehållsbaserad filtrering
+Jag valde innehållsbaserad filtrering framför kollaborativ filtrering eftersom:
+
+Kollaborativ filtrering med ratings kräver en enorm matris (~26 GB) som inte ryms i minnet.
+Innehållsbaserad filtrering fungerar också för filmer som saknar betyg.
+Det blir då enkelt att förstå varför en film rekommenderas.
+
+TF-IDF
+Varje film representeras som ett dokument med genres och taggar:
+"Animation Children Comedy Adventure Fantasy  pixar toy story animated fun family"
+TF-IDF viktar ord som är vanliga för just den filmen men sällsynta i hela datasetet.
+
+Cosine Similarity
+Likhet mellan filmer mäts med cosine similarity, vilket ger ett värde mellan 0 och 1.
+
+4. Begränsningar
+Systemet kan inte skilja på bra och dåliga filmer av samma genre (inga ratings).
+För filmer utan taggar förlitar sig systemet enbart på genres.
+För icke engelska taggar sjunker kvaliteten.
+
+5. Körning
+bashpip install scikit-learn pandas numpy flask
+python server.py
+Kör index.html
+
+6. Slutsats
+TF-IDF och cosine similarity på kombinerad genre- och tagg-data ger meningsfulla filmrekommendationer utan den stora minnesåtgång som kollaborativ filtrering kräver.
