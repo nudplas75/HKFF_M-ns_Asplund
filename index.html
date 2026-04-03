@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Herr Kycklings Fantastiska Filmtips</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Abril+Fatface&family=Josefin+Sans:wght@300;400;600&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --cream:      #ffffff;
+      --cream-dark: #f5f5f5;
+      --ink:        #1a1209;
+      --red:        #8b2a1a;
+      --gold:       #c8913a;
+      --gold-dark:  #9a6c22;
+      --tan:        #c4a882;
+      --muted:      #6b5a3e;
+      --rule:       rgba(26,18,9,0.12);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Josefin Sans', sans-serif;
+      background-color: var(--cream);
+      color: var(--ink);
+      min-height: 100vh;
+      position: relative;
+    }
+
+    /* bakgrundstexturer borttagna */
+
+    .page-frame {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 0 24px 80px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── HEADER ── */
+    header {
+      text-align: center;
+      padding: 48px 0 0;
+    }
+
+    .rule-double {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .rule-thick { height: 3px; background: var(--ink); }
+    .rule-thin  { height: 1px; background: var(--ink); }
+
+    .header-inner { padding: 28px 0 24px; }
+
+    .eyebrow {
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: var(--red);
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      font-family: 'Abril Fatface', serif;
+      font-size: clamp(2rem, 6vw, 4rem);
+      line-height: 0.88;
+      color: var(--ink);
+    }
+
+    h1 .accent { color: var(--red); display: block; }
+
+    .tagline {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: clamp(0.85rem, 2vw, 1rem);
+      color: var(--muted);
+      margin-top: 16px;
+      letter-spacing: 0.05em;
+    }
+
+    /* ── STATUSRAD ── */
+    #status-bar {
+      display: flex;
+      justify-content: center;
+      margin: 32px 0 40px;
+      border-top: 1px solid var(--rule);
+      border-bottom: 1px solid var(--rule);
+      padding: 10px 0;
+    }
+
+    .stat-item {
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 0 18px;
+      border-right: 1px solid var(--rule);
+    }
+    .stat-item:last-child { border-right: none; }
+
+    .stat-dot {
+      display: inline-block;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--tan);
+      margin-right: 6px;
+      vertical-align: middle;
+      transition: background 0.5s;
+    }
+    .stat-dot.ready { background: #5a8a4a; }
+    .stat-dot.error { background: var(--red); }
+
+    /* ── SERVER-VARNING ── */
+    #server-warning {
+      display: none;
+      border: 2px solid var(--red);
+      padding: 16px 20px;
+      margin-bottom: 32px;
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: 13px;
+      color: var(--red);
+      text-align: center;
+      line-height: 1.7;
+    }
+    #server-warning code {
+      font-family: 'Courier New', monospace;
+      font-style: normal;
+      font-size: 12px;
+      background: rgba(139,42,26,0.08);
+      padding: 2px 6px;
+    }
+
+    /* ── SÖK ── */
+    .section-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--gold-dark);
+      display: block;
+      margin-bottom: 10px;
+    }
+
+    .search-wrap { position: relative; margin-bottom: 16px; }
+
+    #search-input {
+      width: 100%;
+      padding: 18px 52px 18px 22px;
+      font-family: 'Playfair Display', serif;
+      font-size: 1.2rem;
+      font-style: italic;
+      color: var(--ink);
+      background: #f0f0f0;
+      border: none;
+      border-top: 3px solid var(--ink);
+      border-bottom: 3px solid var(--ink);
+      outline: none;
+      transition: background 0.2s;
+    }
+    #search-input:focus { background: #e8e8e8; }
+    #search-input::placeholder { color: #aaa; font-style: italic; }
+
+    .search-glyph {
+      position: absolute;
+      right: 18px; top: 50%;
+      transform: translateY(-50%);
+      font-size: 20px;
+      color: var(--gold-dark);
+      pointer-events: none;
+    }
+
+    /* ── SUGGESTIONS ── */
+    #suggestions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      min-height: 32px;
+      margin-bottom: 40px;
+    }
+
+    .suggestion-chip {
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 11px;
+      font-weight: 400;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 7px 14px;
+      background: transparent;
+      border: 1px solid var(--ink);
+      color: var(--ink);
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    .suggestion-chip:hover {
+      background: var(--ink);
+      color: var(--cream);
+    }
+
+    /* ── LOADING ── */
+    #loading {
+      display: none;
+      text-align: center;
+      padding: 40px;
+      font-size: 11px;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .dots span { animation: blink 1.2s infinite; opacity: 0; }
+    .dots span:nth-child(2) { animation-delay: 0.3s; }
+    .dots span:nth-child(3) { animation-delay: 0.6s; }
+    @keyframes blink { 0%,80%,100%{opacity:0} 40%{opacity:1} }
+
+    /* ── FEL ── */
+    #error-msg {
+      display: none;
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: 14px;
+      color: var(--red);
+      border-left: 3px solid var(--red);
+      padding: 12px 18px;
+      margin-bottom: 24px;
+    }
+
+    /* ── TOM STARTVY ── */
+    #empty-state {
+      text-align: center;
+      padding: 52px 0;
+      border-top: 1px solid var(--rule);
+      border-bottom: 1px solid var(--rule);
+    }
+    .empty-icon { font-size: 2.8rem; margin-bottom: 14px; opacity: 0.3; }
+    .empty-title {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: 1.15rem;
+      color: var(--muted);
+    }
+
+    /* ── RESULTAT ── */
+    #results-section {
+      opacity: 0;
+      transform: translateY(12px);
+      transition: opacity 0.5s, transform 0.5s;
+    }
+    #results-section.visible { opacity: 1; transform: none; }
+
+    .results-header { text-align: center; margin-bottom: 28px; }
+
+    .results-kicker {
+      font-size: 10px;
+      letter-spacing: 0.32em;
+      text-transform: uppercase;
+      color: var(--gold-dark);
+      margin-bottom: 6px;
+    }
+
+    .results-film {
+      font-family: 'Abril Fatface', serif;
+      font-size: clamp(1.6rem, 5vw, 2.6rem);
+      color: var(--ink);
+      line-height: 1.05;
+    }
+
+    .results-underline {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-top: 18px;
+    }
+
+    /* ── KORT ── */
+    .cards { display: flex; flex-direction: column; }
+
+    .card {
+      display: flex;
+      align-items: baseline;
+      gap: 0;
+      padding: 18px 0;
+      border-bottom: 1px solid var(--rule);
+      animation: fadeUp 0.4s ease both;
+      cursor: pointer;
+      transition: padding-left 0.2s, background 0.2s;
+    }
+    .card:first-child { border-top: 1px solid var(--rule); }
+    .card:hover {
+      padding-left: 10px;
+      background: #f5f5f5;
+    }
+    .card:hover .card-num { color: var(--gold-dark); }
+    .card:hover .card-title { color: var(--red); }
+
+    @keyframes fadeUp {
+      from { opacity:0; transform:translateY(10px); }
+      to   { opacity:1; transform:none; }
+    }
+    .card:nth-child(1){animation-delay:.04s}
+    .card:nth-child(2){animation-delay:.10s}
+    .card:nth-child(3){animation-delay:.16s}
+    .card:nth-child(4){animation-delay:.22s}
+    .card:nth-child(5){animation-delay:.28s}
+
+    .card-num {
+      font-family: 'Abril Fatface', serif;
+      font-size: 1.3rem;
+      color: var(--tan);
+      line-height: 1;
+      flex-shrink: 0;
+      width: 36px;
+    }
+
+    .card-main {
+      flex: 1;
+      min-width: 0;
+    }
+
+    /* Rad 1: filmnamn + taggar */
+    .card-row {
+      display: flex;
+      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 0 8px;
+    }
+
+    .card-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--ink);
+      line-height: 1.3;
+    }
+
+    .card-tags {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: 0.9rem;
+      color: var(--muted);
+      line-height: 1.3;
+    }
+
+    /* Skiljetecken mellan titel och taggar */
+    .card-tags::before {
+      content: '—';
+      font-style: normal;
+      margin-right: 6px;
+      color: var(--tan);
+    }
+
+    .card-score {
+      font-family: 'Abril Fatface', serif;
+      font-size: 1.3rem;
+      color: var(--red);
+      line-height: 1;
+      flex-shrink: 0;
+      text-align: right;
+      width: 72px;
+    }
+
+    .card-score-label {
+      font-size: 9px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--tan);
+      margin-top: 3px;
+      text-align: right;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      margin-top: 64px;
+      text-align: center;
+    }
+    .footer-text {
+      font-size: 10px;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: var(--tan);
+      margin-top: 18px;
+    }
+
+    @media (max-width: 520px) {
+      .card-tags { font-size: 0.82rem; }
+      .card-score { font-size: 1.1rem; width: 56px; }
+    }
+  </style>
+</head>
+<body>
+<div class="page-frame">
+
+  <header>
+    <div class="rule-double">
+      <div class="rule-thick"></div>
+      <div class="rule-thin"></div>
+    </div>
+    <div class="header-inner">
+      <p class="eyebrow">Alexander Kyckling i sammarbete med Fulet Svenska AB</p>
+      <h1>Herr Kycklings<span class="accent">Fantastiska<br>Filmtips</span></h1><br>
+      <p class="tagline"><i>Skriv En Filmtitel Och Låt Herr Kyckling Visa Vad Han Kan</i></p>
+    </div>
+    <div class="rule-double">
+      <div class="rule-thin"></div>
+      <div class="rule-thick"></div>
+    </div>
+  </header>
+
+  <div id="status-bar">
+    <div class="stat-item">
+      <span class="stat-dot" id="dot-ready"></span>
+      <span id="stat-ready">Ansluter…</span>
+    </div>
+    <div class="stat-item" id="stat-movies">–</div>
+    <div class="stat-item" id="stat-tags">–</div>
+  </div>
+
+  <div id="server-warning">
+    Servern svarar inte.<br>
+    Starta Servern med <code>python server.py</code> och ladda om sidan.
+  </div>
+
+  <span class="section-label">skriv in titeln på en film du gillar.</span>
+  <div class="search-wrap">
+    <input id="search-input" type="text"
+      placeholder="Smokey and the Bandit, Amores Perros, Bedlam…"
+      autocomplete="off" spellcheck="false" />
+    <span class="search-glyph">✦</span>
+  </div>
+
+  <div id="suggestions"></div>
+
+  <div id="loading">
+    Söker<span class="dots">
+      <span>.</span><span>.</span><span>.</span>
+    </span>
+  </div>
+
+  <div id="error-msg"></div>
+
+  <div id="empty-state">
+    <div class="empty-icon">◈</div>
+    <p class="empty-title">Ingen film vald — skriv en titel ovan</p>
+  </div>
+
+  <section id="results-section">
+    <div class="results-header">
+      <p class="results-kicker">Rekommendationer för</p>
+      <p class="results-film" id="results-film-name"></p>
+      <div class="results-underline">
+        <div class="rule-thin"></div>
+        <div class="rule-thick"></div>
+      </div>
+    </div>
+    <div class="cards" id="cards"></div>
+  </section>
+
+  <footer>
+    <div class="rule-double">
+      <div class="rule-thin"></div>
+      <div class="rule-thick"></div>
+    </div>
+    <p class="footer-text">MovieLens &nbsp;·&nbsp; TF-IDF + Cosine Similarity &nbsp;·&nbsp; Flask &nbsp;·&nbsp; Herr Kycklings Fantastiska Filmer</p>
+  </footer>
+
+</div>
+
+<script>
+  const API = 'http://127.0.0.1:5000/api';
+  let searchTimer = null, currentTitle = null;
+
+  const $input    = document.getElementById('search-input');
+  const $sugg     = document.getElementById('suggestions');
+  const $results  = document.getElementById('results-section');
+  const $cards    = document.getElementById('cards');
+  const $filmName = document.getElementById('results-film-name');
+  const $loading  = document.getElementById('loading');
+  const $error    = document.getElementById('error-msg');
+  const $empty    = document.getElementById('empty-state');
+  const $warning  = document.getElementById('server-warning');
+  const $dot      = document.getElementById('dot-ready');
+  const $statRdy  = document.getElementById('stat-ready');
+  const $statM    = document.getElementById('stat-movies');
+  const $statT    = document.getElementById('stat-tags');
+
+  (async () => {
+    try {
+      const d = await (await fetch(`${API}/status`)).json();
+      $dot.classList.add('ready');
+      $statRdy.textContent = 'Modell redo';
+      $statM.textContent   = d.total_movies.toLocaleString('sv') + ' filmer';
+      $statT.textContent   = d.movies_with_tags.toLocaleString('sv') + ' med taggar';
+    } catch {
+      $dot.classList.add('error');
+      $statRdy.textContent = 'Servern svarar inte';
+      $warning.style.display = 'block';
+    }
+  })();
+
+  $input.addEventListener('input', () => {
+    clearTimeout(searchTimer);
+    const q = $input.value.trim();
+    if (q.length < 2) { $sugg.innerHTML = ''; return; }
+    searchTimer = setTimeout(async () => {
+      try {
+        const list = await (await fetch(`${API}/search?q=${encodeURIComponent(q)}&max=7`)).json();
+        $sugg.innerHTML = '';
+        list.forEach(title => {
+          const btn = document.createElement('button');
+          btn.className = 'suggestion-chip';
+          btn.textContent = title;
+          btn.onclick = () => { $input.value = title; $sugg.innerHTML = ''; fetchRec(title); };
+          $sugg.appendChild(btn);
+        });
+      } catch {}
+    }, 250);
+  });
+
+  $input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      const first = $sugg.querySelector('.suggestion-chip');
+      if (first) first.click();
+    }
+  });
+
+  async function fetchRec(title) {
+    if (title === currentTitle) return;
+    currentTitle = title;
+    $loading.style.display = 'block';
+    $error.style.display   = 'none';
+    $empty.style.display   = 'none';
+    $results.classList.remove('visible');
+    try {
+      const data = await (await fetch(`${API}/recommend?title=${encodeURIComponent(title)}&n=5`)).json();
+      $loading.style.display = 'none';
+      if (data.error) { showError(data.error); return; }
+      render(data.input, data.recommendations);
+    } catch {
+      $loading.style.display = 'none';
+      showError('Servern svarar inte — kontrollera att server.py körs.');
+    }
+  }
+
+  function render(title, recs) {
+    $filmName.textContent = title;
+    $cards.innerHTML = '';
+    recs.forEach((r, i) => {
+      const tagsText = r.tags && r.tags.length > 0
+        ? r.tags.join(', ')
+        : r.genres.split('|').slice(0, 3).join(', ').toLowerCase();
+
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `
+        <div class="card-num">${i + 1}</div>
+        <div class="card-main">
+          <div class="card-row">
+            <span class="card-title">${esc(r.title)}</span>
+            <span class="card-tags">${esc(tagsText)}</span>
+          </div>
+        </div>
+        <div style="flex-shrink:0;text-align:right;width:72px;">
+          <div class="card-score">${r.score.toFixed(3)}</div>
+          <div class="card-score-label">score</div>
+        </div>
+      `;
+      card.addEventListener('click', () => {
+        $input.value = r.title;
+        $sugg.innerHTML = '';
+        currentTitle = null;
+        fetchRec(r.title);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+      $cards.appendChild(card);
+    });
+    requestAnimationFrame(() => $results.classList.add('visible'));
+  }
+
+  function showError(msg) {
+    $error.textContent   = msg;
+    $error.style.display = 'block';
+    $empty.style.display = 'none';
+    currentTitle = null;
+  }
+
+  function esc(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+</script>
+</body>
+</html>
